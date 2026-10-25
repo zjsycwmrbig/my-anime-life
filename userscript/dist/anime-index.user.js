@@ -2156,7 +2156,7 @@ ${indexText}`);
     );
   }
 
-  // node_modules/fuse.js/dist/fuse.mjs
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/fuse.js/dist/fuse.mjs
   function isArray(value) {
     return !Array.isArray ? getTag(value) === "[object Array]" : Array.isArray(value);
   }
@@ -5201,7 +5201,7 @@ ${indexText}`);
     }
   };
 
-  // node_modules/lucide/dist/esm/createElement.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/createElement.js
   var createElement = (tag, attrs, children = []) => {
     const element2 = document.createElementNS("http://www.w3.org/2000/svg", tag);
     Object.keys(attrs).forEach((name) => {
@@ -5217,7 +5217,7 @@ ${indexText}`);
   };
   var createElement$1 = ([tag, attrs, children]) => createElement(tag, attrs, children);
 
-  // node_modules/lucide/dist/esm/defaultAttributes.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/defaultAttributes.js
   var defaultAttributes = {
     xmlns: "http://www.w3.org/2000/svg",
     width: 24,
@@ -5230,7 +5230,7 @@ ${indexText}`);
     "stroke-linejoin": "round"
   };
 
-  // node_modules/lucide/dist/esm/icons/bot.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/bot.js
   var Bot = [
     "svg",
     defaultAttributes,
@@ -5244,10 +5244,10 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/check.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/check.js
   var Check = ["svg", defaultAttributes, [["path", { d: "M20 6 9 17l-5-5" }]]];
 
-  // node_modules/lucide/dist/esm/icons/circle-help.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/circle-help.js
   var CircleHelp = [
     "svg",
     defaultAttributes,
@@ -5258,7 +5258,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/cloud-download.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/cloud-download.js
   var CloudDownload = [
     "svg",
     defaultAttributes,
@@ -5269,7 +5269,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/database.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/database.js
   var Database = [
     "svg",
     defaultAttributes,
@@ -5280,7 +5280,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/external-link.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/external-link.js
   var ExternalLink = [
     "svg",
     defaultAttributes,
@@ -5291,7 +5291,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/git-branch.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/git-branch.js
   var GitBranch = [
     "svg",
     defaultAttributes,
@@ -5303,7 +5303,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/git-fork.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/git-fork.js
   var GitFork = [
     "svg",
     defaultAttributes,
@@ -5316,7 +5316,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/github.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/github.js
   var Github = [
     "svg",
     defaultAttributes,
@@ -5331,7 +5331,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/grip-horizontal.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/grip-horizontal.js
   var GripHorizontal = [
     "svg",
     defaultAttributes,
@@ -5345,7 +5345,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/key-round.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/key-round.js
   var KeyRound = [
     "svg",
     defaultAttributes,
@@ -5360,7 +5360,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/list.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/list.js
   var List = [
     "svg",
     defaultAttributes,
@@ -5374,7 +5374,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/message-square-text.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/message-square-text.js
   var MessageSquareText = [
     "svg",
     defaultAttributes,
@@ -5385,7 +5385,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/panel-right-close.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/panel-right-close.js
   var PanelRightClose = [
     "svg",
     defaultAttributes,
@@ -5396,7 +5396,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/refresh-cw.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/refresh-cw.js
   var RefreshCw = [
     "svg",
     defaultAttributes,
@@ -5408,7 +5408,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/rotate-ccw.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/rotate-ccw.js
   var RotateCcw = [
     "svg",
     defaultAttributes,
@@ -5418,7 +5418,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/save.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/save.js
   var Save = [
     "svg",
     defaultAttributes,
@@ -5434,7 +5434,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/scan-search.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/scan-search.js
   var ScanSearch = [
     "svg",
     defaultAttributes,
@@ -5448,7 +5448,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/search.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/search.js
   var Search = [
     "svg",
     defaultAttributes,
@@ -5458,7 +5458,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/settings-2.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/settings-2.js
   var Settings2 = [
     "svg",
     defaultAttributes,
@@ -5470,7 +5470,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/shield-check.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/shield-check.js
   var ShieldCheck = [
     "svg",
     defaultAttributes,
@@ -5485,7 +5485,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/sliders-horizontal.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/sliders-horizontal.js
   var SlidersHorizontal = [
     "svg",
     defaultAttributes,
@@ -5502,7 +5502,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/sparkles.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/sparkles.js
   var Sparkles = [
     "svg",
     defaultAttributes,
@@ -5520,7 +5520,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/star.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/star.js
   var Star = [
     "svg",
     defaultAttributes,
@@ -5534,7 +5534,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/trash-2.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/trash-2.js
   var Trash2 = [
     "svg",
     defaultAttributes,
@@ -5547,7 +5547,7 @@ ${indexText}`);
     ]
   ];
 
-  // node_modules/lucide/dist/esm/icons/x.js
+  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/x.js
   var X = [
     "svg",
     defaultAttributes,
@@ -7311,13 +7311,18 @@ ${indexText}`);
       const requestId = ++this.coverRequestId;
       const isCurrentPageItem = Boolean(item?.id) && this.currentResult?.best?.item?.id === item.id;
       const pageCoverUrl = isCurrentPageItem ? this.currentResult?.bilibiliMetadata?.coverUrl : null;
-      this.setSelectedCover(item?.coverUrl || pageCoverUrl || null);
+      const directUrl = normalizeCoverUrl(item?.coverUrl || pageCoverUrl);
+      if (item && directUrl && !item.coverUrl) {
+        item.coverUrl = directUrl;
+      }
+      this.setSelectedCover(directUrl);
       if (!item || item?.coverUrl || pageCoverUrl || !this.coverResolver) {
         return;
       }
       Promise.resolve(this.coverResolver(item)).then((url) => {
         if (requestId === this.coverRequestId && url) {
-          this.setSelectedCover(url);
+          item.coverUrl = normalizeCoverUrl(url);
+          this.setSelectedCover(item.coverUrl);
         }
       }).catch(() => {
       });
@@ -7682,6 +7687,7 @@ ${indexText}`);
       const selectedResult = this.selectedResult?.item?.id === item.id ? this.selectedResult : null;
       const rating = this.recordRating;
       const review = this.reviewInput.value;
+      await this.resolveItemCover(item);
       this.recordLoadRequestId += 1;
       const saved = this.personalRecordStore.save(item.id, {
         rating: this.recordRating,
@@ -8056,9 +8062,12 @@ ${indexText}`);
         return;
       }
       this.batchImporting = true;
-      this.batchMessage = `正在将 ${selectedCards.length} 项写入 GitHub`;
+      this.batchMessage = `正在获取封面并写入 ${selectedCards.length} 项`;
       this.renderBatchCards();
       try {
+        await this.resolveBatchCovers(
+          selectedCards.map((card) => card.selectedResult.item)
+        );
         const result = await this.githubRecords.saveRecordsBatch({
           entries: selectedCards.map((card) => ({
             item: card.selectedResult.item,
@@ -8085,6 +8094,38 @@ ${indexText}`);
         this.batchImporting = false;
         this.renderBatchCards();
       }
+    }
+    async resolveItemCover(item) {
+      if (!item || item.coverUrl || !this.coverResolver) {
+        return item?.coverUrl ?? null;
+      }
+      try {
+        const url = await this.coverResolver(item);
+        if (url) {
+          item.coverUrl = normalizeCoverUrl(url);
+        }
+      } catch {
+      }
+      return item.coverUrl ?? null;
+    }
+    async resolveBatchCovers(items) {
+      const pending = [...new Set(items ?? [])].filter(
+        (item) => item && !item.coverUrl
+      );
+      let cursor = 0;
+      const worker = async () => {
+        while (cursor < pending.length) {
+          const item = pending[cursor];
+          cursor += 1;
+          await this.resolveItemCover(item);
+        }
+      };
+      await Promise.all(
+        Array.from(
+          { length: Math.min(4, pending.length) },
+          () => worker()
+        )
+      );
     }
     scheduleBatchCards() {
       clearTimeout(this.batchRenderTimer);
