@@ -2156,7 +2156,7 @@ ${indexText}`);
     );
   }
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/fuse.js/dist/fuse.mjs
+  // node_modules/fuse.js/dist/fuse.mjs
   function isArray(value) {
     return !Array.isArray ? getTag(value) === "[object Array]" : Array.isArray(value);
   }
@@ -5201,7 +5201,7 @@ ${indexText}`);
     }
   };
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/createElement.js
+  // node_modules/lucide/dist/esm/createElement.js
   var createElement = (tag, attrs, children = []) => {
     const element2 = document.createElementNS("http://www.w3.org/2000/svg", tag);
     Object.keys(attrs).forEach((name) => {
@@ -5217,7 +5217,7 @@ ${indexText}`);
   };
   var createElement$1 = ([tag, attrs, children]) => createElement(tag, attrs, children);
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/defaultAttributes.js
+  // node_modules/lucide/dist/esm/defaultAttributes.js
   var defaultAttributes = {
     xmlns: "http://www.w3.org/2000/svg",
     width: 24,
@@ -5230,7 +5230,7 @@ ${indexText}`);
     "stroke-linejoin": "round"
   };
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/bot.js
+  // node_modules/lucide/dist/esm/icons/bot.js
   var Bot = [
     "svg",
     defaultAttributes,
@@ -5244,10 +5244,10 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/check.js
+  // node_modules/lucide/dist/esm/icons/check.js
   var Check = ["svg", defaultAttributes, [["path", { d: "M20 6 9 17l-5-5" }]]];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/circle-help.js
+  // node_modules/lucide/dist/esm/icons/circle-help.js
   var CircleHelp = [
     "svg",
     defaultAttributes,
@@ -5258,7 +5258,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/cloud-download.js
+  // node_modules/lucide/dist/esm/icons/cloud-download.js
   var CloudDownload = [
     "svg",
     defaultAttributes,
@@ -5269,7 +5269,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/database.js
+  // node_modules/lucide/dist/esm/icons/database.js
   var Database = [
     "svg",
     defaultAttributes,
@@ -5280,7 +5280,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/external-link.js
+  // node_modules/lucide/dist/esm/icons/external-link.js
   var ExternalLink = [
     "svg",
     defaultAttributes,
@@ -5291,7 +5291,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/git-branch.js
+  // node_modules/lucide/dist/esm/icons/git-branch.js
   var GitBranch = [
     "svg",
     defaultAttributes,
@@ -5303,7 +5303,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/git-fork.js
+  // node_modules/lucide/dist/esm/icons/git-fork.js
   var GitFork = [
     "svg",
     defaultAttributes,
@@ -5316,7 +5316,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/github.js
+  // node_modules/lucide/dist/esm/icons/github.js
   var Github = [
     "svg",
     defaultAttributes,
@@ -5331,7 +5331,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/grip-horizontal.js
+  // node_modules/lucide/dist/esm/icons/grip-horizontal.js
   var GripHorizontal = [
     "svg",
     defaultAttributes,
@@ -5345,7 +5345,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/key-round.js
+  // node_modules/lucide/dist/esm/icons/key-round.js
   var KeyRound = [
     "svg",
     defaultAttributes,
@@ -5360,7 +5360,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/list.js
+  // node_modules/lucide/dist/esm/icons/list.js
   var List = [
     "svg",
     defaultAttributes,
@@ -5374,7 +5374,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/message-square-text.js
+  // node_modules/lucide/dist/esm/icons/message-square-text.js
   var MessageSquareText = [
     "svg",
     defaultAttributes,
@@ -5385,7 +5385,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/panel-right-close.js
+  // node_modules/lucide/dist/esm/icons/panel-right-close.js
   var PanelRightClose = [
     "svg",
     defaultAttributes,
@@ -5396,7 +5396,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/refresh-cw.js
+  // node_modules/lucide/dist/esm/icons/refresh-cw.js
   var RefreshCw = [
     "svg",
     defaultAttributes,
@@ -5408,7 +5408,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/rotate-ccw.js
+  // node_modules/lucide/dist/esm/icons/rotate-ccw.js
   var RotateCcw = [
     "svg",
     defaultAttributes,
@@ -5418,7 +5418,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/save.js
+  // node_modules/lucide/dist/esm/icons/save.js
   var Save = [
     "svg",
     defaultAttributes,
@@ -5434,7 +5434,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/scan-search.js
+  // node_modules/lucide/dist/esm/icons/scan-search.js
   var ScanSearch = [
     "svg",
     defaultAttributes,
@@ -5448,7 +5448,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/search.js
+  // node_modules/lucide/dist/esm/icons/search.js
   var Search = [
     "svg",
     defaultAttributes,
@@ -5458,7 +5458,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/settings-2.js
+  // node_modules/lucide/dist/esm/icons/settings-2.js
   var Settings2 = [
     "svg",
     defaultAttributes,
@@ -5470,7 +5470,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/shield-check.js
+  // node_modules/lucide/dist/esm/icons/shield-check.js
   var ShieldCheck = [
     "svg",
     defaultAttributes,
@@ -5485,7 +5485,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/sliders-horizontal.js
+  // node_modules/lucide/dist/esm/icons/sliders-horizontal.js
   var SlidersHorizontal = [
     "svg",
     defaultAttributes,
@@ -5502,7 +5502,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/sparkles.js
+  // node_modules/lucide/dist/esm/icons/sparkles.js
   var Sparkles = [
     "svg",
     defaultAttributes,
@@ -5520,7 +5520,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/star.js
+  // node_modules/lucide/dist/esm/icons/star.js
   var Star = [
     "svg",
     defaultAttributes,
@@ -5534,7 +5534,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/trash-2.js
+  // node_modules/lucide/dist/esm/icons/trash-2.js
   var Trash2 = [
     "svg",
     defaultAttributes,
@@ -5547,7 +5547,7 @@ ${indexText}`);
     ]
   ];
 
-  // ../../../../home/zjs/works/my-anime-life/userscript/node_modules/lucide/dist/esm/icons/x.js
+  // node_modules/lucide/dist/esm/icons/x.js
   var X = [
     "svg",
     defaultAttributes,
