@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.cache/
+.DS_Store
+*.local
+playwright-report/
+test-results/
+!userscript/dist/
+!userscript/dist/anime-index.user.js
