@@ -19,6 +19,89 @@
     system-ui, sans-serif;
 }
 
+/* Shared site appearance on the management surface */
+html[data-site-template="compact"] .topbar {
+  min-height: 58px;
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+
+html[data-site-template="compact"] .workspace {
+  grid-template-columns: minmax(0, 1.65fr) minmax(320px, 0.62fr);
+}
+
+html[data-site-template="compact"] .library-pane,
+html[data-site-template="compact"] .catalog-pane,
+html[data-site-template="compact"] .editor-pane {
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+
+html[data-site-template="compact"] .settings-section {
+  padding-top: 18px;
+  padding-bottom: 20px;
+}
+
+html[data-site-template="spotlight"] .topbar {
+  border-bottom-color: rgb(255 255 255 / 12%);
+  background: #17201b;
+  color: #fff;
+}
+
+html[data-site-template="spotlight"] .brand-block span:last-child {
+  color: rgb(255 255 255 / 62%);
+}
+
+html[data-site-template="spotlight"] .brand-mark {
+  background: var(--accent);
+}
+
+html[data-site-template="spotlight"] .view-switch {
+  border-color: rgb(255 255 255 / 16%);
+  background: rgb(255 255 255 / 8%);
+}
+
+html[data-site-template="spotlight"] .view-switch button {
+  color: rgb(255 255 255 / 68%);
+}
+
+html[data-site-template="spotlight"] .view-switch button.is-active {
+  background: #fffdf7;
+  color: #17201b;
+}
+
+html[data-site-template="spotlight"] .topbar .button {
+  border-color: rgb(255 255 255 / 24%);
+  background: rgb(255 255 255 / 9%);
+  color: #fff;
+}
+
+html[data-site-template="spotlight"] .topbar .button:hover {
+  border-color: rgb(255 255 255 / 50%);
+  background: rgb(255 255 255 / 16%);
+}
+
+html[data-site-template="spotlight"] .topbar .button-primary {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+html[data-site-template="spotlight"] .topbar .runtime-badge {
+  border-color: rgb(255 255 255 / 22%);
+  background: rgb(255 255 255 / 8%);
+  color: rgb(255 255 255 / 72%);
+}
+
+.topbar,
+.workspace,
+.settings-section {
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    grid-template-columns 180ms ease;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -67,6 +150,13 @@ button {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.topbar-leading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 14px;
 }
 
 .brand-block > div {
@@ -217,7 +307,19 @@ textarea:focus-visible,
 .reading-link {
   display: inline-flex;
   align-items: center;
+  gap: 7px;
   text-decoration: none;
+  white-space: nowrap;
+}
+
+.reading-link svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .button-primary {
@@ -2514,6 +2616,61 @@ th:nth-child(4) {
   color: #5b3b0e;
 }
 
+.update-available-banner {
+  position: relative;
+  overflow: hidden;
+  margin-top: 18px;
+  padding: 17px 18px;
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--line));
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  background:
+    linear-gradient(
+      120deg,
+      color-mix(in srgb, var(--accent-soft) 82%, white),
+      var(--surface)
+    );
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.update-available-banner > div {
+  display: grid;
+  gap: 3px;
+}
+
+.update-available-banner span {
+  color: var(--accent-dark);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.update-available-banner strong {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 20px;
+}
+
+.update-available-banner p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.update-available-pulse {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  border: 3px solid color-mix(in srgb, var(--accent) 24%, white);
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
 .about-status {
   min-height: 22px;
   margin: 16px 0 0;
@@ -2763,6 +2920,16 @@ th:nth-child(4) {
 
   .brand-block {
     flex-wrap: wrap;
+  }
+
+  .topbar-leading {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .topbar-leading .brand-block {
+    flex: 1;
+    justify-content: flex-end;
   }
 
   .brand-block > div {
