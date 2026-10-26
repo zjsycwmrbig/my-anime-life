@@ -10,9 +10,9 @@
     "slug": "",
     "branch": "main"
   },
-  "template": "default",
+  "template": "spotlight",
   "share": {
-    "template": "auto",
+    "template": "spotlight",
     "accent": "coral"
   },
   "dataFile": "data/anime.jsonl",
