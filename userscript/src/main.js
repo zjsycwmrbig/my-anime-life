@@ -1,5 +1,7 @@
 import { createSettingsStore } from "./core/settings.js";
+import { isEnabledSite } from "./core/site-allowlist.js";
 import { createPersonalRecordStore } from "./core/personal-records.js";
+import { createRecognitionCacheStore } from "./core/recognition-cache.js";
 import { createCoverResolver } from "./core/cover-cache.js";
 import { createGithubRecordsService } from "./core/github-records.js";
 import { toErrorMessage } from "./core/network.js";
@@ -7,7 +9,15 @@ import { AnimeIndexService } from "./index/index-service.js";
 import { AnimeRecognizer } from "./recognizers/recognizer.js";
 import { ScoutPanel } from "./ui/panel.js";
 
-if (window.top === window.self && !document.getElementById("bangumi-scout-host")) {
+const enabledSite =
+  isEnabledSite(location.href) ||
+  globalThis.__BANGUMI_SCOUT_TEST_MODE__ === true;
+
+if (
+  enabledSite &&
+  window.top === window.self &&
+  !document.getElementById("bangumi-scout-host")
+) {
   bootstrap().catch((error) => {
     console.error("[Bangumi Scout] bootstrap failed", error);
   });
@@ -16,6 +26,7 @@ if (window.top === window.self && !document.getElementById("bangumi-scout-host")
 async function bootstrap() {
   const settingsStore = createSettingsStore();
   const personalRecordStore = createPersonalRecordStore();
+  const recognitionCache = createRecognitionCacheStore();
   const coverResolver = createCoverResolver();
   const githubRecords = createGithubRecordsService({ settingsStore });
   const initialSettings = settingsStore.get();
@@ -34,6 +45,7 @@ async function bootstrap() {
     indexService,
     recognizer,
     personalRecordStore,
+    recognitionCache,
     coverResolver,
     githubRecords,
     onRecognize: async (options = {}) => {
@@ -76,6 +88,9 @@ async function bootstrap() {
       await recognitionPromise.catch(() => {});
     }
 
+    if (options.ignoreRecognitionCache) {
+      recognitionCache.clear(location.href);
+    }
     panel.setBusy(true, options.ai === "force" ? "AI 正在推断" : "正在识别");
     recognitionPromise = recognizer
       .recognize({
@@ -83,7 +98,9 @@ async function bootstrap() {
         includeBilibiliApi: options.includeBilibiliApi,
       })
       .then((result) => {
-        panel.setResult(result);
+        panel.setResult(result, {
+          ignoreCachedSelection: Boolean(options.ignoreRecognitionCache),
+        });
         return result;
       })
       .catch((error) => {
@@ -103,7 +120,10 @@ async function bootstrap() {
     GM_registerMenuCommand("打开 Bangumi Scout", () => panel.open());
     GM_registerMenuCommand("识别当前页面", () => {
       panel.open({ recognize: false });
-      runRecognition({ source: "menu" }).catch(() => {});
+      runRecognition({
+        source: "menu",
+        ignoreRecognitionCache: true,
+      }).catch(() => {});
     });
     GM_registerMenuCommand("Bangumi Scout 设置", () => panel.openSettings());
     GM_registerMenuCommand("检查番剧索引更新", () => {

@@ -245,6 +245,97 @@ test("closes, drags and docks the recognition panel", async ({ page }) => {
   await expect(host.locator(".scout-title")).toHaveText("相反的你和我");
 });
 
+test("restores unsynced ratings and reviews until they are cleared", async ({
+  page,
+}) => {
+  await page.goto("/demo/bangumi/media/md292073015.html", {
+    waitUntil: "networkidle",
+  });
+  await page.waitForFunction(() => Boolean(window.BangumiScout));
+
+  let host = page.locator("#bangumi-scout-host");
+  await host.locator(".scout-launcher").click();
+  await recognizeCurrentPage(host);
+  await host
+    .getByRole("radio", { name: "9 分", exact: true })
+    .click();
+  await host.locator(".scout-review").fill("尚未同步的本机短评");
+  await page.waitForTimeout(400);
+
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForFunction(() => Boolean(window.BangumiScout));
+  host = page.locator("#bangumi-scout-host");
+  await host.locator(".scout-launcher").click();
+  await expect(host.locator(".scout-title")).toHaveText("相反的你和我");
+  await expect(host.locator(".scout-evidence")).toContainText("简介已读取");
+  await expect(
+    host.getByRole("radio", { name: "9 分", exact: true }),
+  ).toHaveAttribute("aria-checked", "true");
+  await expect(host.locator(".scout-review")).toHaveValue(
+    "尚未同步的本机短评",
+  );
+  await expect(host.locator(".scout-record")).toContainText(
+    "已恢复本机未同步草稿",
+  );
+  await expect(
+    host.getByRole("button", { name: "重新识别" }),
+  ).toBeVisible();
+
+  await host.getByRole("button", { name: "重新识别" }).click();
+  await expect(host.locator(".scout-panel")).toHaveAttribute(
+    "aria-busy",
+    "false",
+  );
+  await expect(host.locator(".scout-title")).toHaveText("相反的你和我");
+
+  await host.getByRole("button", { name: "清除草稿" }).click();
+  await expect(host.locator(".scout-review")).toHaveValue("");
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForFunction(() => Boolean(window.BangumiScout));
+  host = page.locator("#bangumi-scout-host");
+  await host.locator(".scout-launcher").click();
+  await recognizeCurrentPage(host);
+  await expect(host.locator(".scout-review")).toHaveValue("");
+});
+
+test("keeps plugin typing from triggering page keyboard shortcuts", async ({
+  page,
+}) => {
+  await page.goto("/demo/bangumi/media/md292073015.html", {
+    waitUntil: "networkidle",
+  });
+  await page.waitForFunction(() => Boolean(window.BangumiScout));
+  await page.evaluate(() => {
+    window.__pageShortcutKeys = [];
+    for (const eventName of ["keydown", "keypress", "keyup"]) {
+      document.addEventListener(eventName, (event) => {
+        window.__pageShortcutKeys.push(`${eventName}:${event.key}`);
+      });
+    }
+  });
+
+  const host = page.locator("#bangumi-scout-host");
+  await host.locator(".scout-launcher").click();
+  await recognizeCurrentPage(host);
+  const review = host.locator(".scout-review");
+  await review.click();
+  await page.keyboard.type("abc 123");
+
+  await expect(review).toHaveValue(/abc 123/u);
+  expect(await page.evaluate(() => window.__pageShortcutKeys)).toEqual([]);
+});
+
+test("does not initialize on an unrelated website", async ({ page }) => {
+  await page.goto("/", { waitUntil: "networkidle" });
+  await page.addScriptTag({ path: userscriptPath });
+  await page.waitForTimeout(150);
+
+  await expect(page.locator("#bangumi-scout-host")).toHaveCount(0);
+  await expect
+    .poll(() => page.evaluate(() => Boolean(window.BangumiScout)))
+    .toBe(false);
+});
+
 test("loads every Bilibili follow page and batch imports selected anime once", async ({
   page,
 }) => {
@@ -495,7 +586,7 @@ test("loads and saves a rating through the configured GitHub repository", async 
     "aria-checked",
     "true",
   );
-  await host.getByRole("button", { name: "保存到 GitHub" }).click();
+  await host.getByRole("button", { name: "同步到 GitHub" }).click();
 
   await expect(host.locator(".scout-record .scout-footer-status")).toContainText(
     "已保存到 GitHub",
@@ -568,7 +659,7 @@ test("keeps the local draft when GitHub writing fails", async ({ page }) => {
 
   const review = host.locator('textarea[name="personal.review"]');
   await review.fill("即使远端失败，这段内容也要留在本地。");
-  await host.getByRole("button", { name: "保存到 GitHub" }).click();
+  await host.getByRole("button", { name: "同步到 GitHub" }).click();
   await expect(host.locator(".scout-record .scout-footer-status")).toContainText(
     "本地草稿已保存 · GitHub 同步失败",
   );

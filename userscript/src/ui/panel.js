@@ -249,6 +249,7 @@ export class ScoutPanel {
     this.indexService = options.indexService;
     this.recognizer = options.recognizer;
     this.personalRecordStore = options.personalRecordStore;
+    this.recognitionCache = options.recognitionCache;
     this.coverResolver = options.coverResolver;
     this.githubRecords = options.githubRecords;
     this.onRecognize = options.onRecognize;
@@ -264,6 +265,7 @@ export class ScoutPanel {
     this.recordDirty = false;
     this.recordRemoteRecord = null;
     this.pendingGithubSave = null;
+    this.draftSaveTimer = null;
     this.recordLoadRequestId = 0;
     this.recordSaving = false;
     this.githubConnectionChecking = false;
@@ -460,6 +462,15 @@ export class ScoutPanel {
     ]);
     this.shadow.append(this.root);
     document.documentElement.append(this.host);
+    for (const eventName of ["keydown", "keypress", "keyup"]) {
+      this.host.addEventListener(
+        eventName,
+        (event) => {
+          event.stopPropagation();
+        },
+        true,
+      );
+    }
     this.updatePagePresentation();
 
     this.shadow.addEventListener("keydown", (event) => {
@@ -554,7 +565,11 @@ export class ScoutPanel {
     this.rescanButton = button(
       "识别当前页",
       null,
-      () => this.onRecognize({ source: "manual" }),
+      () =>
+        this.onRecognize({
+          source: "manual",
+          ignoreRecognitionCache: true,
+        }),
       { variant: "primary" },
     );
     this.rescanButtonTextNode = this.rescanButton.lastChild;
@@ -779,8 +794,9 @@ export class ScoutPanel {
       on: {
         input: () => {
           this.recordDirty = true;
-          this.recordStatus.textContent = "有尚未保存的修改";
+          this.recordStatus.textContent = "正在缓存本机草稿";
           this.clearDuplicateWarning();
+          this.scheduleRecognitionDraftSave();
         },
       },
     });
@@ -789,12 +805,17 @@ export class ScoutPanel {
       text: "尚未填写",
     });
     this.saveRecordButton = button(
-      "保存草稿",
+      "同步到 GitHub",
       Save,
       () => this.savePersonalRecord(),
       { variant: "primary" },
     );
     this.saveRecordButtonTextNode = this.saveRecordButton.lastChild;
+    this.clearRecordButton = button(
+      "清除草稿",
+      Trash2,
+      () => this.clearPersonalRecordDraft(),
+    );
     this.recordNote = element("p", {
       className: "scout-note",
       text: "当前保存为本机草稿；在扩展设置中连接 GitHub 后可写入自己的番剧仓库。",
@@ -874,7 +895,10 @@ export class ScoutPanel {
         this.reviewInput,
         element("div", { className: "scout-record-footer" }, [
           this.recordStatus,
-          this.saveRecordButton,
+          element("div", { className: "scout-record-actions" }, [
+            this.clearRecordButton,
+            this.saveRecordButton,
+          ]),
         ]),
         this.recordNote,
         this.recordRemoteLink,
@@ -1837,9 +1861,31 @@ export class ScoutPanel {
     }
   }
 
-  setResult(result) {
+  setResult(result, options = {}) {
     this.currentResult = result;
-    this.selectedResult = result.best
+    const cachedDraft = options.ignoreCachedSelection
+      ? null
+      : this.recognitionCache?.get(location.href) ?? null;
+    const cachedSelection = cachedDraft?.selectedResult?.item?.id
+      ? cachedDraft.selectedResult
+      : cachedDraft?.item?.id
+        ? {
+            item: cachedDraft.item,
+            confidence: 0,
+            matchedBy: ["local-cache"],
+          }
+        : null;
+    this.selectedResult = cachedSelection
+      ? {
+          ...cachedSelection,
+          bilibiliMetadata:
+            result.bilibiliMetadata ??
+            cachedSelection.bilibiliMetadata ??
+            null,
+          manualSelection: true,
+          selectionSource: "local-cache",
+        }
+      : result.best
       ? {
           ...result.best,
           bilibiliMetadata: result.bilibiliMetadata ?? null,
@@ -1861,6 +1907,12 @@ export class ScoutPanel {
     this.batchProgressRenderTimer = null;
     this.batchScanRequestId += 1;
     this.renderRecognitionResult(result);
+    if (this.recordItem?.id) {
+      this.persistRecognitionDraft({ silent: true });
+    }
+    if (cachedSelection) {
+      this.showToast("已恢复本机尚未同步的识别草稿");
+    }
     if (this.rescanButtonTextNode) {
       this.rescanButtonTextNode.textContent = "重新识别";
     }
@@ -2196,6 +2248,64 @@ export class ScoutPanel {
     });
   }
 
+  scheduleRecognitionDraftSave(delay = 300) {
+    clearTimeout(this.draftSaveTimer);
+    if (!this.recordItem?.id) {
+      return;
+    }
+    this.draftSaveTimer = setTimeout(() => {
+      this.draftSaveTimer = null;
+      this.persistRecognitionDraft();
+    }, delay);
+  }
+
+  persistRecognitionDraft(options = {}) {
+    const item = this.recordItem;
+    if (!item?.id) {
+      return null;
+    }
+    const record = {
+      rating: this.recordRating,
+      review: this.reviewInput.value,
+    };
+    const saved = this.personalRecordStore?.save(item.id, record);
+    const draft = this.recognitionCache?.save(location.href, {
+      item,
+      selectedResult:
+        this.selectedResult?.item?.id === item.id
+          ? this.selectedResult
+          : null,
+      recognitionResult: this.currentResult,
+      ...record,
+    });
+    this.recordDirty = false;
+    if (!options.silent) {
+      const savedAt = formatRecordTime(saved?.updatedAt || draft?.updatedAt);
+      this.recordStatus.textContent = savedAt
+        ? `已缓存本机 · ${savedAt}`
+        : "已缓存本机草稿";
+    }
+    return draft;
+  }
+
+  clearPersonalRecordDraft() {
+    const item = this.recordItem;
+    if (!item?.id) {
+      return;
+    }
+    clearTimeout(this.draftSaveTimer);
+    this.draftSaveTimer = null;
+    this.personalRecordStore?.remove(item.id);
+    this.recognitionCache?.clear(location.href);
+    this.recordRating = null;
+    this.reviewInput.value = "";
+    this.recordDirty = false;
+    this.clearDuplicateWarning();
+    this.syncRecordRating();
+    this.recordStatus.textContent = "本机草稿已清除";
+    this.showToast("已清除当前番剧的本机草稿");
+  }
+
   selectRating(rating) {
     if (!this.recordItem || this.busy) {
       return;
@@ -2203,8 +2313,9 @@ export class ScoutPanel {
     this.recordRating = this.recordRating === rating ? null : rating;
     this.recordDirty = true;
     this.clearDuplicateWarning();
-    this.recordStatus.textContent = "有尚未保存的修改";
+    this.recordStatus.textContent = "正在缓存本机草稿";
     this.syncRecordRating();
+    this.scheduleRecognitionDraftSave();
   }
 
   syncRecordRating() {
@@ -2223,19 +2334,45 @@ export class ScoutPanel {
     const recordStoreReady = Boolean(this.personalRecordStore);
     const itemChanged = this.recordItem?.id !== item?.id;
     if (itemChanged) {
+      if (this.recordDirty) {
+        this.persistRecognitionDraft({ silent: true });
+      }
+      clearTimeout(this.draftSaveTimer);
+      this.draftSaveTimer = null;
       this.recordLoadRequestId += 1;
       this.clearDuplicateWarning();
       this.recordItem = item ?? null;
       this.recordRemoteRecord = null;
       this.setRecordRemoteLink(null);
-      const record = item?.id ? this.personalRecordStore?.get(item.id) : null;
+      const cachedDraft = item?.id
+        ? this.recognitionCache?.get(location.href)
+        : null;
+      const matchingDraft =
+        cachedDraft?.item?.id === item?.id ? cachedDraft : null;
+      const record =
+        matchingDraft ??
+        (item?.id ? this.personalRecordStore?.get(item.id) : null);
       this.recordRating = record?.rating ?? null;
       this.recordDirty = false;
       this.reviewInput.value = record?.review ?? "";
       this.recordStatus.textContent =
-        record?.rating || record?.review
+        matchingDraft
+          ? "已恢复本机未同步草稿"
+          : record?.rating || record?.review
           ? "已载入本地草稿"
           : "尚未填写";
+      if (item?.id && !matchingDraft) {
+        this.recognitionCache?.save(location.href, {
+          item,
+          selectedResult:
+            this.selectedResult?.item?.id === item.id
+              ? this.selectedResult
+              : null,
+          recognitionResult: this.currentResult,
+          rating: record?.rating ?? null,
+          review: record?.review ?? "",
+        });
+      }
     }
 
     const enabled = Boolean(item?.id && recordStoreReady);
@@ -2297,10 +2434,13 @@ export class ScoutPanel {
       configured && Boolean(String(settings.github.token ?? "").trim());
     const enabled = Boolean(this.recordItem?.id && this.personalRecordStore);
     this.saveRecordButtonTextNode.textContent = writable
-      ? "保存到 GitHub"
+      ? "同步到 GitHub"
       : "保存草稿";
     this.reviewInput.disabled = !enabled || this.recordSaving;
     this.saveRecordButton.disabled = !enabled || this.recordSaving;
+    if (this.clearRecordButton) {
+      this.clearRecordButton.disabled = !enabled || this.recordSaving;
+    }
     for (const ratingButton of this.ratingButtons) {
       ratingButton.disabled = !enabled || this.recordSaving;
     }
@@ -2312,13 +2452,13 @@ export class ScoutPanel {
     }
     if (writable) {
       this.recordNote.textContent =
-        "保存时先写本地草稿，再同步到 GitHub；远端失败不会删除本地内容。";
+        "评分和短评会自动缓存到本机；点击同步后才会写入 GitHub，失败时缓存保留。";
     } else if (configured) {
       this.recordNote.textContent =
-        "仓库已配置但缺少 Token，当前只保存本地草稿。请在扩展设置中补充。";
+        "评分和短评会自动缓存到本机。仓库已配置但缺少 Token，请在扩展设置中补充。";
     } else {
       this.recordNote.textContent =
-        "当前保存为本机草稿；在扩展设置中连接 GitHub 后可写入自己的番剧仓库。";
+        "评分和短评会自动缓存到本机；在扩展设置中连接 GitHub 后可同步。";
     }
   }
 
@@ -2334,6 +2474,9 @@ export class ScoutPanel {
         : null;
     this.reviewInput.value = String(record?.review ?? "");
     this.recordDirty = false;
+    clearTimeout(this.draftSaveTimer);
+    this.draftSaveTimer = null;
+    this.recognitionCache?.clear(location.href);
     this.syncRecordRating();
     this.personalRecordStore?.save(
       this.recordItem.id,
@@ -2436,6 +2579,14 @@ export class ScoutPanel {
       return;
     }
     this.recordDirty = false;
+    this.recognitionCache?.save(location.href, {
+      item,
+      selectedResult,
+      recognitionResult: this.currentResult,
+      rating,
+      review,
+      updatedAt: saved.updatedAt,
+    });
     const savedAt = new Date(
       saved.updatedAt,
     ).toLocaleString("zh-CN", {
@@ -2488,6 +2639,12 @@ export class ScoutPanel {
       this.setRecordRemoteLink(remote);
       this.pendingGithubSave = null;
       this.clearDuplicateWarning();
+      clearTimeout(this.draftSaveTimer);
+      this.draftSaveTimer = null;
+      this.recognitionCache?.clear(location.href);
+      if (saveRequest.item?.id) {
+        this.personalRecordStore?.remove(saveRequest.item.id);
+      }
       const syncedAt =
         remote.record?.updatedAt || this.settingsStore.get().github.lastSyncedAt;
       const updatedSettings = this.settingsStore.update({
@@ -3081,6 +3238,47 @@ export class ScoutPanel {
     this.searchInput.focus();
   }
 
+  restoreCachedRecognition() {
+    const draft = this.recognitionCache?.get(location.href);
+    const item = draft?.selectedResult?.item ?? draft?.item;
+    if (!draft || !item?.id) {
+      return false;
+    }
+    const cachedResult = draft.recognitionResult ?? {};
+    const selectedResult = draft.selectedResult ?? {
+      item,
+      confidence: 0,
+      matchedBy: ["local-cache"],
+    };
+    this.setResult({
+      ...cachedResult,
+      status: cachedResult.status ?? "matched",
+      best: selectedResult,
+      results:
+        Array.isArray(cachedResult.results) && cachedResult.results.length
+          ? cachedResult.results
+          : [{ ...selectedResult, confidence: selectedResult.confidence ?? 0 }],
+      titleCandidates: cachedResult.titleCandidates ?? [],
+      context: cachedResult.context ?? {},
+      aiResult: cachedResult.aiResult ?? null,
+      bilibiliMetadata:
+        cachedResult.bilibiliMetadata ??
+        selectedResult.bilibiliMetadata ??
+        null,
+      diagnostics: cachedResult.diagnostics ?? [],
+    });
+    this.candidateCollapsed = true;
+    this.resultListSection.hidden = true;
+    this.titleCandidateSection.hidden = true;
+    this.manualSearchSection.hidden = true;
+    this.batchSection.hidden = true;
+    this.recordSection.hidden = false;
+    if (this.rescanButtonTextNode) {
+      this.rescanButtonTextNode.textContent = "重新识别";
+    }
+    return true;
+  }
+
   requestAi() {
     if (!this.settingsStore.get().ai.enabled) {
       this.openSettings();
@@ -3088,7 +3286,11 @@ export class ScoutPanel {
       this.aiEnabled.focus();
       return;
     }
-    this.onRecognize({ source: "manual", ai: "force" });
+    this.onRecognize({
+      source: "manual",
+      ai: "force",
+      ignoreRecognitionCache: true,
+    });
   }
 
   showToast(message) {
@@ -3107,6 +3309,9 @@ export class ScoutPanel {
   open(options = {}) {
     this.updatePagePresentation();
     this.closeSettings();
+    if (!this.currentResult && options.recognize !== true) {
+      this.restoreCachedRecognition();
+    }
     this.panel.hidden = false;
     this.launcher.hidden = true;
     this.launcher.setAttribute("aria-expanded", "true");
