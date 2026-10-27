@@ -398,9 +398,14 @@
               <div class="catalog-multi-filter-panel">
                 <div class="catalog-multi-filter-heading">
                   <span>可多选年份</span>
-                  <button id="catalogYearClear" class="text-button" type="button" disabled>
-                    清空
-                  </button>
+                  <div class="catalog-multi-filter-actions">
+                    <button id="catalogYearClear" class="text-button" type="button" disabled>
+                      清空
+                    </button>
+                    <button id="catalogYearClose" class="text-button" type="button">
+                      收起
+                    </button>
+                  </div>
                 </div>
                 <div id="catalogYearOptions" class="catalog-year-options"></div>
               </div>
@@ -442,17 +447,17 @@
                 </span>
               </span>
             </summary>
-            <div class="catalog-public-stats" aria-label="本页 Bangumi 信息统计">
+            <div class="catalog-public-stats" aria-label="已有 Bangumi 缓存统计">
               <span>
-                <small>本页条目</small>
+                <small>缓存条目</small>
                 <strong id="catalogMetadataTotalCount">0</strong>
               </span>
               <span>
-                <small>个人缓存命中</small>
+                <small>个人缓存</small>
                 <strong id="catalogMetadataCacheCount">0</strong>
               </span>
               <span>
-                <small>本机缓存命中</small>
+                <small>本机缓存</small>
                 <strong id="catalogMetadataLocalCount">0</strong>
               </span>
               <span>
@@ -464,7 +469,7 @@
                 <strong id="catalogMetadataTagCount">0</strong>
               </span>
               <span>
-                <small>待补充</small>
+                <small>无评分或标签</small>
                 <strong id="catalogMetadataMissingCount">0</strong>
               </span>
               <a
@@ -536,9 +541,14 @@
                 <div class="catalog-multi-filter-panel">
                   <div class="catalog-multi-filter-heading">
                     <span>可多选 · 匹配任一标签</span>
-                    <button id="catalogTagClear" class="text-button" type="button" disabled>
-                      清空
-                    </button>
+                    <div class="catalog-multi-filter-actions">
+                      <button id="catalogTagClear" class="text-button" type="button" disabled>
+                        清空
+                      </button>
+                      <button id="catalogTagClose" class="text-button" type="button">
+                        收起
+                      </button>
+                    </div>
                   </div>
                   <div id="catalogTagOptions" class="catalog-year-options"></div>
                 </div>
