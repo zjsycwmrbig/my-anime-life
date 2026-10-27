@@ -448,10 +448,10 @@ async function onlineApi(path, options) {
     return store.saveSiteSettings(parseBody(options));
   }
   if (url.pathname === "/api/template/status" && method === "GET") {
-    return store.templateStatus();
+    return store.templateStatus({ onProgress: options.onProgress });
   }
   if (url.pathname === "/api/template/update" && method === "POST") {
-    const result = await store.updateTemplate();
+    const result = await store.updateTemplate({ onProgress: options.onProgress });
     invalidateLibraryCache();
     return result;
   }
@@ -474,6 +474,7 @@ async function onlineApi(path, options) {
         query: url.searchParams.get("q") ?? "",
         year: url.searchParams.get("year") ?? "",
         source: url.searchParams.get("source") ?? "",
+        owned: url.searchParams.get("owned") ?? "",
         offset: url.searchParams.get("offset") ?? "0",
         limit: url.searchParams.get("limit") ?? "30",
         refresh: url.searchParams.get("refresh") === "1",
