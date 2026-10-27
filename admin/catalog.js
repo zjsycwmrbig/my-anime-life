@@ -37,7 +37,8 @@ const state = {
   pageSize: 30,
   layout: "list",
   query: "",
-  year: "",
+  years: new Set(),
+  ownership: "",
   source: "",
   facetsLoaded: false,
   selectedItems: new Map(),
@@ -53,7 +54,11 @@ const elements = {
   settingsWorkspace: document.querySelector("#settingsWorkspace"),
   aboutWorkspace: document.querySelector("#aboutWorkspace"),
   catalogSearch: document.querySelector("#catalogSearch"),
-  catalogYear: document.querySelector("#catalogYear"),
+  catalogYearFilter: document.querySelector("#catalogYearFilter"),
+  catalogYearSummary: document.querySelector("#catalogYearSummary"),
+  catalogYearOptions: document.querySelector("#catalogYearOptions"),
+  catalogYearClear: document.querySelector("#catalogYearClear"),
+  catalogOwnership: document.querySelector("#catalogOwnership"),
   catalogSource: document.querySelector("#catalogSource"),
   catalogRefresh: document.querySelector("#catalogRefresh"),
   catalogRows: document.querySelector("#catalogRows"),
@@ -694,7 +699,11 @@ async function updateTemplate() {
     ].filter(Boolean).join(" · ");
     elements.templateCommitLink.href = result.templateCommitUrl || elements.templateCommitLink.href;
     elements.templateUpdateBadge.textContent = `已更新 ${result.commitShort}`;
-    elements.templateUpdateStatus.textContent = `更新完成：保留 ${result.preservedDataFiles} 个数据文件和站点设置，更新 ${result.updatedFiles} 个文件，移除 ${result.removedFiles} 个旧文件。刷新页面后加载最新管理页。`;
+    const retryNote =
+      result.retryCount > 0
+        ? `期间网络波动已自动重试 ${result.retryCount} 次。`
+        : "";
+    elements.templateUpdateStatus.textContent = `更新完成：保留 ${result.preservedDataFiles} 个数据文件和站点设置，更新 ${result.updatedFiles} 个文件，移除 ${result.removedFiles} 个旧文件。${retryNote}刷新页面后加载最新管理页。`;
     state.templateStatus = {
       ...state.templateStatus,
       updateAvailable: false,
@@ -708,7 +717,10 @@ async function updateTemplate() {
     };
     elements.templateUpdateAvailable.hidden = true;
     elements.templateUpdateButton.hidden = true;
-    showToast(`管理页已更新，提交 ${result.commitShort}`, { duration: 7000 });
+    showToast(
+      `管理页已更新，提交 ${result.commitShort}${result.retryCount > 0 ? `，自动重试 ${result.retryCount} 次` : ""}`,
+      { duration: 7000 },
+    );
   } catch (error) {
     elements.templateUpdateStatus.textContent = error.message;
     showToast(error.message, { error: true, duration: 8000 });
@@ -718,23 +730,52 @@ async function updateTemplate() {
   }
 }
 
+function selectedYearValues() {
+  return [...state.years].sort((left, right) => Number(right) - Number(left));
+}
+
+function renderYearFilterSummary() {
+  const years = selectedYearValues();
+  if (!years.length) {
+    elements.catalogYearSummary.textContent = "全部年份";
+  } else if (years.length <= 2) {
+    elements.catalogYearSummary.textContent = years.join("、");
+  } else {
+    elements.catalogYearSummary.textContent = `已选 ${years.length} 个年份`;
+  }
+  elements.catalogYearClear.disabled = years.length === 0;
+}
+
 function populateFacets(facets) {
-  if (state.facetsLoaded || !facets) {
+  if (!facets) {
     return;
   }
-  for (const year of facets.years ?? []) {
-    const option = document.createElement("option");
-    option.value = String(year.value);
-    option.textContent = `${year.value} · ${year.count}`;
-    elements.catalogYear.append(option);
+  if (!state.facetsLoaded) {
+    elements.catalogYearOptions.replaceChildren();
+    for (const year of facets.years ?? []) {
+      const label = document.createElement("label");
+      label.className = "catalog-year-option";
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.value = String(year.value);
+      input.dataset.catalogYear = "true";
+      input.checked = state.years.has(input.value);
+      const value = document.createElement("span");
+      value.textContent = String(year.value);
+      const count = document.createElement("small");
+      count.textContent = `${year.count} 部`;
+      label.append(input, value, count);
+      elements.catalogYearOptions.append(label);
+    }
+    for (const source of facets.sources ?? []) {
+      const option = document.createElement("option");
+      option.value = source.value;
+      option.textContent = `${source.label} · ${source.count}`;
+      elements.catalogSource.append(option);
+    }
+    state.facetsLoaded = true;
   }
-  for (const source of facets.sources ?? []) {
-    const option = document.createElement("option");
-    option.value = source.value;
-    option.textContent = `${source.label} · ${source.count}`;
-    elements.catalogSource.append(option);
-  }
-  state.facetsLoaded = true;
+  renderYearFilterSummary();
 }
 
 function createLoadingSvg() {
@@ -1093,8 +1134,11 @@ async function loadCatalog(options = {}) {
   if (state.query) {
     params.set("q", state.query);
   }
-  if (state.year) {
-    params.set("year", state.year);
+  if (state.years.size) {
+    params.set("year", selectedYearValues().join(","));
+  }
+  if (state.ownership) {
+    params.set("owned", state.ownership);
   }
   if (state.source) {
     params.set("source", state.source);
@@ -1407,14 +1451,60 @@ elements.catalogSearch.addEventListener("input", () => {
   }, 260);
 });
 
-for (const select of [elements.catalogYear, elements.catalogSource]) {
+for (const select of [elements.catalogOwnership, elements.catalogSource]) {
   select.addEventListener("change", () => {
-    state.year = elements.catalogYear.value;
+    state.ownership = elements.catalogOwnership.value;
     state.source = elements.catalogSource.value;
     state.page = 1;
     loadCatalog();
   });
 }
+
+elements.catalogYearOptions.addEventListener("change", (event) => {
+  const input = event.target.closest("input[data-catalog-year]");
+  if (!input) {
+    return;
+  }
+  if (input.checked) {
+    state.years.add(input.value);
+  } else {
+    state.years.delete(input.value);
+  }
+  renderYearFilterSummary();
+  state.page = 1;
+  loadCatalog();
+});
+
+elements.catalogYearClear.addEventListener("click", () => {
+  if (!state.years.size) {
+    return;
+  }
+  state.years.clear();
+  for (const input of elements.catalogYearOptions.querySelectorAll(
+    "input[data-catalog-year]",
+  )) {
+    input.checked = false;
+  }
+  renderYearFilterSummary();
+  state.page = 1;
+  loadCatalog();
+});
+
+document.addEventListener("click", (event) => {
+  if (
+    elements.catalogYearFilter.open &&
+    !elements.catalogYearFilter.contains(event.target)
+  ) {
+    elements.catalogYearFilter.open = false;
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && elements.catalogYearFilter.open) {
+    elements.catalogYearFilter.open = false;
+    elements.catalogYearFilter.querySelector("summary")?.focus();
+  }
+});
 
 elements.catalogRefresh.addEventListener("click", () => {
   loadCatalog({ refresh: true });
@@ -1518,7 +1608,13 @@ window.addEventListener("anime-runtime:changed", () => {
   state.total = 0;
   state.page = 1;
   state.facetsLoaded = false;
-  for (const select of [elements.catalogYear, elements.catalogSource]) {
+  state.years.clear();
+  state.ownership = "";
+  state.source = "";
+  elements.catalogOwnership.value = "";
+  elements.catalogYearOptions.replaceChildren();
+  renderYearFilterSummary();
+  for (const select of [elements.catalogSource]) {
     while (select.options.length > 1) {
       select.options.remove(1);
     }
