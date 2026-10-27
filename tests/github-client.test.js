@@ -2,10 +2,15 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   GitHubApiError,
+  GitHubAdminStore,
   GitHubClient,
   base64ToText,
 } from "../admin/github-client.js";
 import { buildLibraryData } from "../scripts/admin-data.mjs";
+import {
+  parseBangumiCacheJsonl,
+  serializeBangumiCache,
+} from "../scripts/bangumi-cache-data.mjs";
 
 const baseRecord = {
   $schema: "../../schemas/anime.schema.json",
@@ -218,8 +223,35 @@ test("aborts stalled GitHub reads and reports a timeout", async () => {
     (error) =>
       error instanceof GitHubApiError &&
       error.status === 0 &&
-      /请求超时/u.test(error.message),
+      /无法连接 GitHub \(api\.github\.com\).*请求超时/u.test(error.message),
   );
+});
+
+test("reads template file content through the authenticated Git Blob API", async () => {
+  let request = null;
+  const client = new GitHubClient({
+    repository: "example/personal",
+    token: "github_pat_secret",
+    fetchImpl: async (url, init) => {
+      request = {
+        url: String(url),
+        headers: init.headers,
+      };
+      return response({
+        encoding: "base64",
+        content: "Y29udGVudA==\n",
+      });
+    },
+  });
+
+  const content = await client.getBlobBase64For("example/template", "blob-sha");
+
+  assert.equal(content, "Y29udGVudA==");
+  assert.equal(
+    request.url,
+    "https://api.github.com/repos/example/template/git/blobs/blob-sha",
+  );
+  assert.equal(request.headers.Authorization, "Bearer github_pat_secret");
 });
 
 test("publishes data, index, and rotated backups in one Git Data commit", async () => {
@@ -330,12 +362,22 @@ test("does not call GitHub when the library is unchanged", async () => {
   assert.equal(result.backupPath, null);
 });
 
-test("loads public snapshots from raw content with two API calls", async () => {
+test("loads the library and personal Bangumi cache from raw content", async () => {
   const library = buildLibraryData([baseRecord]);
+  const bangumiCacheText = serializeBangumiCache([
+    {
+      subjectId: "400602",
+      score: 8.7,
+      tags: [{ name: "奇幻", count: 1200 }],
+      fetchedAt: "2026-10-27T08:00:00Z",
+      source: "bangumi-archive",
+    },
+  ]);
   const headSha = "a".repeat(40);
   const config = {
     dataFile: "data/anime.jsonl",
     indexFile: "data/anime-index.jsonl",
+    bangumiCacheFile: "data/bangumi-cache.jsonl",
     backupDirectory: "data/backups",
     backupLimit: 5,
   };
@@ -358,6 +400,9 @@ test("loads public snapshots from raw content with two API calls", async () => {
     if (parsed.pathname.endsWith("/data/anime-index.jsonl")) {
       return textResponse(library.indexText);
     }
+    if (parsed.pathname.endsWith("/data/bangumi-cache.jsonl")) {
+      return textResponse(bangumiCacheText);
+    }
     return textResponse("Not found", 404);
   };
   const client = new GitHubClient({
@@ -371,6 +416,8 @@ test("loads public snapshots from raw content with two API calls", async () => {
   assert.equal(snapshot.headSha, headSha);
   assert.equal(snapshot.records[0].title, baseRecord.title);
   assert.equal(snapshot.dataText, library.dataText);
+  assert.equal(snapshot.bangumiCacheText, bangumiCacheText);
+  assert.equal(snapshot.bangumiCache[0].subjectId, "400602");
   assert.deepEqual(snapshot.backups, []);
   assert.equal(
     requests.filter((request) => request.hostname === "api.github.com").length,
@@ -380,7 +427,62 @@ test("loads public snapshots from raw content with two API calls", async () => {
     requests.filter(
       (request) => request.hostname === "raw.githubusercontent.com",
     ).length,
-    3,
+    4,
+  );
+});
+
+test("publishes merged personal Bangumi cache with one file commit", async () => {
+  const initialText = serializeBangumiCache([
+    {
+      subjectId: "101",
+      score: 8.1,
+      fetchedAt: "2026-10-27T08:00:00Z",
+      source: "bangumi-archive",
+    },
+  ]);
+  let published = null;
+  const client = {
+    token: "github_pat_secret",
+    async loadSnapshot() {
+      return {
+        headSha: "a".repeat(40),
+        baseTreeSha: "b".repeat(40),
+        config: { bangumiCacheFile: "data/bangumi-cache.jsonl" },
+        bangumiCache: parseBangumiCacheJsonl(initialText),
+        bangumiCacheText: initialText,
+      };
+    },
+    async publishFileChange(snapshot, filePath, text, message) {
+      published = { snapshot, filePath, text, message };
+      return { commit: "c".repeat(40), commitShort: "ccccccc" };
+    },
+  };
+  const store = new GitHubAdminStore(client);
+  const result = await store.saveBangumiCache({
+    mode: "merge",
+    message: "chore(data): sync personal Bangumi cache",
+    entries: [
+      {
+        subjectId: "102",
+        score: 9.1,
+        tags: [{ name: "悬疑", count: 40 }],
+        fetchedAt: "2026-10-27T09:00:00Z",
+        source: "bangumi-api",
+      },
+    ],
+  });
+
+  assert.equal(result.changed, true);
+  assert.equal(result.count, 2);
+  assert.equal(result.commitShort, "ccccccc");
+  assert.equal(published.filePath, "data/bangumi-cache.jsonl");
+  assert.equal(
+    published.message,
+    "chore(data): sync personal Bangumi cache",
+  );
+  assert.deepEqual(
+    parseBangumiCacheJsonl(published.text).map((entry) => entry.subjectId),
+    ["101", "102"],
   );
 });
 

@@ -22,6 +22,14 @@ import {
   applySiteSettings,
   siteSettingsPayload,
 } from "../scripts/site-settings.mjs";
+import {
+  BANGUMI_CACHE_JSONL_PATH,
+  bangumiCacheStatistics,
+  mergeBangumiCacheEntries,
+  parseBangumiCacheJsonl,
+  removeBangumiCacheEntries,
+  serializeBangumiCache,
+} from "../scripts/bangumi-cache-data.mjs";
 
 const API_ROOT = "https://api.github.com";
 const RAW_ROOT = "https://raw.githubusercontent.com";
@@ -102,17 +110,6 @@ function base64ToText(value) {
   return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
 }
 
-function bytesToBase64(bytes) {
-  let binary = "";
-  const chunkSize = 0x8000;
-  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
-    binary += String.fromCharCode(
-      ...bytes.subarray(offset, offset + chunkSize),
-    );
-  }
-  return btoa(binary);
-}
-
 function shortHash(value) {
   let hash = 0x811c9dc5;
   for (const character of value) {
@@ -167,6 +164,10 @@ function normalizeConfig(value) {
       config.indexFile ?? ANIME_INDEX_JSONL_PATH,
       "索引文件路径",
     ),
+    bangumiCacheFile: assertRelativePath(
+      config.bangumiCacheFile ?? BANGUMI_CACHE_JSONL_PATH,
+      "Bangumi 缓存文件路径",
+    ),
     backupDirectory: assertRelativePath(
       config.backupDirectory ?? BACKUP_DIRECTORY,
       "备份目录",
@@ -180,6 +181,14 @@ function normalizeConfig(value) {
 
 function sameLibrary(left, right) {
   return left.dataText === right.dataText && left.indexText === right.indexText;
+}
+
+function bangumiCacheResult(entries, text, file) {
+  return {
+    ...bangumiCacheStatistics(entries, text),
+    entries,
+    file,
+  };
 }
 
 function positiveInteger(value, fallback) {
@@ -331,25 +340,6 @@ export class GitHubClient {
     );
   }
 
-  async getRawBase64For(repository, path, ref) {
-    const bytes = await this.requestWithRetry(
-      `${RAW_ROOT}/${repository}/${encodeURIComponent(ref)}/${encodePath(path)}`,
-      {
-        method: "GET",
-        headers: { Accept: "application/octet-stream" },
-      },
-      {
-        method: "GET",
-        readResponse: async (response) =>
-          new Uint8Array(await response.arrayBuffer()),
-        describeHttpError(status, detail) {
-          return `GitHub 原始文件请求失败 (HTTP ${status})${detail ? `：${detail}` : ""}`;
-        },
-      },
-    );
-    return bytesToBase64(bytes);
-  }
-
   async requestWithRetry(url, init, options) {
     const method = String(options.method ?? init.method ?? "GET").toUpperCase();
     const maxAttempts = IDEMPOTENT_METHODS.has(method) ? this.maxAttempts : 1;
@@ -367,7 +357,7 @@ export class GitHubClient {
             signal: timeout.signal,
           });
         } catch (error) {
-          throw this.transportError(error, timeout);
+          throw this.transportError(error, timeout, url);
         }
 
         if (options.allowNotFound && response.status === 404) {
@@ -428,14 +418,23 @@ export class GitHubClient {
     };
   }
 
-  transportError(error, timeout) {
+  transportError(error, timeout, url = "") {
     const message =
       timeout.timedOut() ||
       error?.name === "AbortError" ||
       error?.name === "TimeoutError"
         ? "请求超时"
         : error?.message || "网络错误";
-    return new GitHubApiError(0, `无法连接 GitHub：${message}`);
+    let host = "";
+    try {
+      host = new URL(url).hostname;
+    } catch {
+      // Keep the generic GitHub message for non-standard test URLs.
+    }
+    return new GitHubApiError(
+      0,
+      `无法连接 GitHub${host ? ` (${host})` : ""}：${message}`,
+    );
   }
 
   isRetryable(error) {
@@ -501,6 +500,14 @@ export class GitHubClient {
       `/git/blobs/${encodeURIComponent(blobSha)}`,
       { authenticate: Boolean(this.token) },
     );
+  }
+
+  async getBlobBase64For(repository, blobSha) {
+    const payload = await this.getBlobFor(repository, blobSha);
+    if (payload?.encoding !== "base64" || !cleanString(payload.content)) {
+      throw new Error(`无法读取模板文件内容：${blobSha}`);
+    }
+    return cleanString(payload.content).replace(/\s+/gu, "");
   }
 
   async getContentAtRef(filePath, ref, allowNotFound = false) {
@@ -582,14 +589,20 @@ export class GitHubClient {
     config = normalizeConfig(config);
     this.backupDirectory = config.backupDirectory;
 
-    const [dataFile, indexFile, backups] = await Promise.all([
+    const [dataFile, indexFile, bangumiCacheFile, backups] = await Promise.all([
       this.getTextAtRef(config.dataFile, headSha),
       this.getTextAtRef(config.indexFile, headSha),
+      this.getTextAtRef(config.bangumiCacheFile, headSha, true),
       options.includeBackups ? this.listBackups(headSha) : [],
     ]);
     const records = sortRecordsById(parseJsonl(dataFile.text, config.dataFile));
     const index = sortRecordsById(
       parseJsonl(indexFile.text, config.indexFile),
+    );
+    const bangumiCacheText = bangumiCacheFile?.text ?? "";
+    const bangumiCache = parseBangumiCacheJsonl(
+      bangumiCacheText,
+      config.bangumiCacheFile,
     );
     const expectedIndex = buildAnimeIndex(records);
     if (JSON.stringify(index) !== JSON.stringify(expectedIndex)) {
@@ -606,6 +619,8 @@ export class GitHubClient {
       index,
       dataText: dataFile.text,
       indexText: indexFile.text,
+      bangumiCache,
+      bangumiCacheText,
       backups,
     };
   }
@@ -810,6 +825,72 @@ export class GitHubAdminStore {
     return {
       ...snapshot,
       backupLimit: snapshot.config.backupLimit,
+    };
+  }
+
+  async loadBangumiCache() {
+    const snapshot = await this.client.loadSnapshot();
+    return bangumiCacheResult(
+      snapshot.bangumiCache,
+      snapshot.bangumiCacheText,
+      snapshot.config.bangumiCacheFile,
+    );
+  }
+
+  async saveBangumiCache(input = {}) {
+    this.requireWriteAccess();
+    const snapshot = await this.client.loadSnapshot();
+    const currentEntries = snapshot.bangumiCache ?? [];
+    const mode = cleanString(input.mode) || "merge";
+    let entries;
+    if (mode === "remove") {
+      entries = removeBangumiCacheEntries(currentEntries, input.subjectIds);
+    } else if (mode === "replace") {
+      if (!Array.isArray(input.entries)) {
+        throw new Error("替换 Bangumi 缓存时缺少 entries");
+      }
+      entries = parseBangumiCacheJsonl(
+        serializeBangumiCache(input.entries),
+        "提交的 Bangumi 缓存",
+      );
+    } else if (mode === "merge") {
+      if (!Array.isArray(input.entries)) {
+        throw new Error("合并 Bangumi 缓存时缺少 entries");
+      }
+      entries = mergeBangumiCacheEntries(currentEntries, input.entries);
+    } else {
+      throw new Error(`不支持的 Bangumi 缓存操作：${mode}`);
+    }
+
+    const previousText = snapshot.bangumiCacheText ?? "";
+    const text = serializeBangumiCache(entries);
+    if (text === previousText) {
+      return {
+        ...bangumiCacheResult(
+          entries,
+          text,
+          snapshot.config.bangumiCacheFile,
+        ),
+        changed: false,
+        commit: "",
+        commitShort: "",
+      };
+    }
+    const result = await this.client.publishFileChange(
+      snapshot,
+      snapshot.config.bangumiCacheFile,
+      text,
+      cleanString(input.message) ||
+        `chore(data): sync Bangumi cache (${entries.length} subjects)`,
+    );
+    return {
+      ...bangumiCacheResult(
+        entries,
+        text,
+        snapshot.config.bangumiCacheFile,
+      ),
+      changed: true,
+      ...result,
     };
   }
 
