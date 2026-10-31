@@ -12,12 +12,36 @@
   },
   "template": "spotlight",
   "share": {
-    "template": "spotlight",
-    "accent": "coral"
+    "template": "compact",
+    "accent": "amber"
   },
   "dataFile": "data/anime.jsonl",
   "indexFile": "data/anime-index.jsonl",
   "backupDirectory": "data/backups",
   "backupLimit": 5,
-  "outputDirectory": "dist"
+  "outputDirectory": "dist",
+  "bangumiCacheFile": "data/bangumi-cache.jsonl",
+  "insights": {
+    "tagRadar": {
+      "enabled": true,
+      "mode": "manual",
+      "maxAxes": 12,
+      "axes": [
+        "奇幻",
+        "战斗",
+        "异世界",
+        "搞笑",
+        "后宫",
+        "恋爱",
+        "日常",
+        "运动",
+        "校园",
+        "治愈",
+        "催泪",
+        "冒险"
+      ],
+      "excludedTags": [],
+      "aliasGroups": []
+    }
+  }
 }
